@@ -85,18 +85,22 @@ jobs:
           echo "Clonando https://github.com/$OWNER/$NORMALIZED_REPO_NAME.git..."
           git clone "https://x-access-token:${REPO_CREATION_TOKEN}@github.com/${OWNER}/${NORMALIZED_REPO_NAME}.git" new-repo
 
-          cd new-repo
-          echo "Instalando módulos BMAD (bmm, bmb)..."
+          cd new-repo || { echo "No se pudo entrar al directorio new-repo"; exit 1; }
+          echo "Directorio actual tras cd new-repo: $(pwd)"
+
+          echo "Instalando módulos BMAD (bmm, bmb) en $(pwd)..."
           npx bmad-method install --modules bmm,bmb --yes
 
-          echo "\nContenido del repositorio tras la instalación de BMAD:"
-          pwd
-          ls -R
+          echo "\nContenido del repositorio tras la instalación de BMAD (incluyendo ocultos):"
+          ls -laR
+
+          echo "\nEstado de git tras la instalación de BMAD:"
+          git status
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add .
+          git add -A
           if git diff --cached --quiet; then
             echo "No hay cambios que commitear tras instalar BMAD."
           else
