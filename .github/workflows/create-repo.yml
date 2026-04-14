@@ -89,6 +89,10 @@ jobs:
           echo "Instalando módulos BMAD (bmm, bmb)..."
           npx bmad-method install --modules bmm,bmb --yes
 
+          echo "\nContenido del repositorio tras la instalación de BMAD:"
+          pwd
+          ls -R
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
