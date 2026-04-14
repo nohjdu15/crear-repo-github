@@ -1,4 +1,3 @@
-import base64
 import os
 import re
 import sys
@@ -133,79 +132,6 @@ def add_multiple_collaborators(
     print("Todos los colaboradores fueron procesados.")
 
 
-def create_file_in_repo(
-    token: str,
-    owner: str,
-    repo: str,
-    path: str,
-    content: str,
-    message: str,
-) -> None:
-    """Crea un archivo en el repositorio remoto usando la API de contenidos.
-
-    Se usa para inicializar módulos/base en el nuevo repositorio creado.
-    """
-
-    url = f"{GITHUB_API_URL}/repos/{owner}/{repo}/contents/{path}"
-    headers = {
-        "Authorization": f"Bearer {token}",
-        "Accept": "application/vnd.github+json",
-    }
-    encoded_content = base64.b64encode(content.encode("utf-8")).decode("ascii")
-    payload = {
-        "message": message,
-        "content": encoded_content,
-    }
-
-    response = requests.put(url, json=payload, headers=headers, timeout=30)
-    if response.status_code not in (200, 201):
-        raise RuntimeError(
-            "Error creando archivo en repo remoto "
-            f"({response.status_code}): {response.text}"
-        )
-
-
-def create_bmad_base_structure(token: str, owner: str, repo: str) -> None:
-    """Crea los módulos base BMad Method (BMM) y BMad Builder.
-
-    Genera paquetes Python mínimos en la raíz del nuevo repositorio para que
-    puedas desarrollar sobre ellos:
-
-    - ``bmm/``: núcleo del framework y workflows principales.
-    - ``bmad_builder/``: utilidades para crear agentes, workflows y módulos.
-    """
-
-    bmm_init = '''"""Paquete base para BMad Method (BMM).
-
-Este módulo actúa como núcleo del framework, donde podrás definir
-workflows y agentes principales.
-"""\n'''
-
-    builder_init = '''"""Paquete base para BMad Builder.
-
-Aquí podrás crear agentes, workflows y módulos propios basados
-en BMM.
-"""\n'''
-
-    create_file_in_repo(
-        token=token,
-        owner=owner,
-        repo=repo,
-        path="bmm/__init__.py",
-        content=bmm_init,
-        message="Add BMad Method (BMM) base package",
-    )
-
-    create_file_in_repo(
-        token=token,
-        owner=owner,
-        repo=repo,
-        path="bmad_builder/__init__.py",
-        content=builder_init,
-        message="Add BMad Builder base package",
-    )
-
-
 def main() -> None:
     """Punto de entrada del script cuando se ejecuta como CLI.
 
@@ -259,9 +185,6 @@ def main() -> None:
 
     normalized_name = repo_info["name"]
     print(f"Repositorio creado: {repo_info['html_url']}")
-
-    # Crear estructura base BMad (BMM y BMad Builder) en el nuevo repo.
-    create_bmad_base_structure(token=token, owner=owner, repo=normalized_name)
 
     if collaborators:
         add_multiple_collaborators(
