@@ -111,13 +111,13 @@ jobs:
               sudo apt-get update && sudo apt-get install -y expect
 
               expect <<EOF
-              spawn npx bmad-method install --modules bmm,bmb
-              set timeout -1
-              expect {
-                "(y/N)" { send "y\r"; exp_continue }
-                "(Y/n)" { send "y\r"; exp_continue }
-                eof
-              }
+spawn npx bmad-method install --modules bmm,bmb
+set timeout -1
+expect {
+  "(y/N)" { send "y\r"; exp_continue }
+  "(Y/n)" { send "y\r"; exp_continue }
+  eof
+}
 EOF
 
             fi
