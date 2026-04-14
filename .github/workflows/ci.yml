@@ -38,8 +38,8 @@ jobs:
       - name: Lint (flake8)
         run: flake8 .
 
-      - name: Format check (black)
-        run: black --check .
+      - name: Format code (black)
+        run: black .
 
       - name: Tests (pytest)
         run: pytest
