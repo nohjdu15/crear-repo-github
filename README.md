@@ -9,7 +9,10 @@ forma segura, usando **tokens en secretos** (sin quemar credenciales en código)
 - `src/create_github_repo.py`: script principal que
   - normaliza el nombre del repositorio (minúsculas, seguro),
   - crea el repo vía API de GitHub,
-  - añade N colaboradores con permisos configurables.
+   - añade N colaboradores con permisos configurables,
+   - inicializa en el **nuevo repositorio** los paquetes base:
+      - `bmm/`: núcleo de BMad Method (BMM) y workflows principales.
+      - `bmad_builder/`: utilidades para crear agentes, workflows y módulos.
 - `tests/`: pruebas unitarias con `pytest`.
 - `requirements.txt`: dependencias necesarias para ejecutar el script.
 - `.github/workflows/ci.yml`: pipeline de CI (lint, formato, tests y análisis de seguridad).
