@@ -12,7 +12,6 @@ forma segura, usando **tokens en secretos** (sin quemar credenciales en código)
   - añade N colaboradores con permisos configurables.
 - `tests/`: pruebas unitarias con `pytest`.
 - `requirements.txt`: dependencias necesarias para ejecutar el script.
-- `dev-requirements.txt`: herramientas de desarrollo (lint, formato, seguridad, tests).
 - `.github/workflows/ci.yml`: pipeline de CI (lint, formato, tests y análisis de seguridad).
 - `.github/workflows/create-repo.yml`: workflow manual para crear un repositorio
   y añadir colaboradores desde la interfaz de GitHub.
@@ -20,10 +19,9 @@ forma segura, usando **tokens en secretos** (sin quemar credenciales en código)
 ## Seguridad: uso de tokens
 
 El script **no** lleva tokens hardcodeados. En su lugar, lee el token desde
-variables de entorno, típicamente:
+una única variable de entorno dedicada:
 
-- `REPO_CREATION_TOKEN` (recomendado)
-- `GITHUB_TOKEN` (solo como fallback en entornos locales)
+- `REPO_CREATION_TOKEN`
 
 En GitHub Actions, se debe usar un **Personal Access Token (PAT)** almacenado
 como **secreto**.
@@ -80,7 +78,6 @@ permite que **antes de la ejecución** indiques:
 
    ```bash
    pip install -r requirements.txt
-   pip install -r dev-requirements.txt
    ```
 
 3. Exporta el token como variable de entorno (ejemplo en PowerShell):
@@ -102,7 +99,7 @@ indiques.
 
 El workflow [.github/workflows/ci.yml](.github/workflows/ci.yml):
 
-- instala dependencias de `requirements.txt` y `dev-requirements.txt`,
+- instala dependencias de `requirements.txt`,
 - ejecuta `flake8` para linting,
 - ejecuta `black --check` para comprobar formato,
 - lanza los tests con `pytest`,

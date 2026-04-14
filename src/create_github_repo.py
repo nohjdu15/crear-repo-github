@@ -136,8 +136,8 @@ def main() -> None:
         python -m src.create_github_repo \
             <owner> "<nombre_repo>" "<descripcion>" user1 user2 ...
 
-       En este caso el token se obtiene de la variable de entorno
-       ``REPO_CREATION_TOKEN`` (recomendada) o ``GITHUB_TOKEN``.
+    En este caso el token se obtiene **únicamente** de la variable
+    de entorno ``REPO_CREATION_TOKEN``.
 
     2) Desde GitHub Actions (workflow_dispatch):
 
@@ -153,13 +153,14 @@ def main() -> None:
         )
         raise SystemExit(1)
 
-    # Primero intentamos leer el token de una variable específica para
-    # creación de repos; si no existe, caemos en GITHUB_TOKEN.
-    token = os.getenv("REPO_CREATION_TOKEN") or os.getenv("GITHUB_TOKEN")
+    # Leemos el token desde una variable de entorno específica para
+    # creación de repos. No hay fallback a GITHUB_TOKEN para endurecer
+    # el modelo de seguridad.
+    token = os.getenv("REPO_CREATION_TOKEN")
     if not token:
         print(
             "ERROR: Debes definir la variable de entorno "
-            "REPO_CREATION_TOKEN o GITHUB_TOKEN."
+            "REPO_CREATION_TOKEN con un token válido."
         )
         raise SystemExit(1)
 
