@@ -17,13 +17,17 @@ def normalize_repo_name(name: str) -> str:
     - Elimina cualquier carácter que no sea letra, número, guion o guion bajo.
     """
     if not isinstance(name, str):
-        raise TypeError("El nombre del repositorio debe ser una cadena.")
+        raise TypeError(
+            "El nombre del repositorio debe ser una cadena."
+        )
 
     normalized = name.strip().lower().replace(" ", "-")
     normalized = re.sub(r"[^a-z0-9_\-]", "", normalized)
 
     if not normalized:
-        raise ValueError("Nombre de repositorio inválido después de normalizar.")
+        raise ValueError(
+            "Nombre de repositorio inválido después de normalizar."
+        )
 
     return normalized
 
@@ -87,7 +91,9 @@ def add_collaborator(
     """
 
     if not username:
-        raise ValueError("El nombre de usuario del colaborador no puede estar vacío.")
+        raise ValueError(
+            "El nombre de usuario del colaborador no puede estar vacío."
+        )
 
     url = f"{GITHUB_API_URL}/repos/{owner}/{repo}/collaborators/{username}"
     headers = {
