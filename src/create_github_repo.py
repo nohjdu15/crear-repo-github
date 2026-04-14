@@ -60,7 +60,11 @@ def create_repository(
         "name": normalized_name,
         "description": description,
         "private": private,
-        "auto_init": True,
+        # Dejamos el repositorio SIN auto_init para que quede vacío.
+        # Así, cuando lo clonemos, la carpeta estará vacía y
+        # `bmad-method` podrá inicializar toda la estructura BMAD
+        # dentro del propio repositorio.
+        "auto_init": False,
     }
 
     headers = {
