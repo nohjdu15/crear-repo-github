@@ -42,7 +42,9 @@ jobs:
         run: black .
 
       - name: Tests (pytest)
-        run: pytest
+        run: |
+          export PYTHONPATH=.
+          pytest
 
       - name: Security scan (Bandit)
         run: bandit -r . || true
