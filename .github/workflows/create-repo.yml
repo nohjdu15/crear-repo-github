@@ -83,6 +83,7 @@ jobs:
       - name: Clonar repo e instalar módulos BMAD (robusto)
         run: |
           set -e
+          set -x
 
           echo "Clonando repositorio..."
           git clone "https://x-access-token:${REPO_CREATION_TOKEN}@github.com/${OWNER}/${NORMALIZED_REPO_NAME}.git" new-repo
@@ -97,31 +98,16 @@ jobs:
           export CI=true
           export NODE_ENV=production
 
-          echo "Intentando instalación BMAD (modo estándar)..."
-          if npx --yes bmad-method install --modules bmm,bmb --yes; then
-            echo "Instalación BMAD exitosa (modo estándar)"
-          else
-            echo "Fallo modo estándar, intentando con yes..."
+          echo "Instalando BMAD (forzado sin interacción)..."
 
-            if yes | npx bmad-method install --modules bmm,bmb; then
-              echo "Instalación BMAD exitosa (con yes)"
-            else
-              echo "Fallo con yes, intentando con expect..."
+          # Intento 1: modo estándar
+          npx --yes bmad-method install --modules bmm,bmb --yes || \
 
-              sudo apt-get update && sudo apt-get install -y expect
+          # Intento 2: usando yes
+          (yes | npx bmad-method install --modules bmm,bmb) || \
 
-              expect <<EOF
-spawn npx bmad-method install --modules bmm,bmb
-set timeout -1
-expect {
-  "(y/N)" { send "y\r"; exp_continue }
-  "(Y/n)" { send "y\r"; exp_continue }
-  eof
-}
-EOF
-
-            fi
-          fi
+          # Intento 3: simulando input con pipe extendido
+          (printf 'y\ny\ny\ny\n' | npx bmad-method install --modules bmm,bmb)
 
           echo "Verificando instalación..."
           ls -la
