@@ -80,31 +80,60 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Clonar repo recién creado e instalar módulos BMAD
+      - name: Clonar repo e instalar módulos BMAD (robusto)
         run: |
-          echo "Clonando https://github.com/$OWNER/$NORMALIZED_REPO_NAME.git..."
+          set -e
+
+          echo "Clonando repositorio..."
           git clone "https://x-access-token:${REPO_CREATION_TOKEN}@github.com/${OWNER}/${NORMALIZED_REPO_NAME}.git" new-repo
 
-          cd new-repo || { echo "No se pudo entrar al directorio new-repo"; exit 1; }
-          echo "Directorio actual tras cd new-repo: $(pwd)"
+          cd new-repo || { echo "No se pudo entrar al repo"; exit 1; }
 
-          echo "Instalando módulos BMAD (bmm, bmb) en $(pwd)..."
-          # Forzamos las respuestas afirmativas como si respondieras "y" en local,
-          # además de pasar --yes por si el CLI lo soporta correctamente.
-          printf 'y\ny\ny\n' | npx bmad-method install --modules bmm,bmb --yes
-
-          echo "\nContenido del repositorio tras la instalación de BMAD (incluyendo ocultos):"
-          ls -laR
-
-          echo "\nEstado de git tras la instalación de BMAD:"
-          git status
-
+          echo "Configurando git..."
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          echo "Forzando modo CI..."
+          export CI=true
+          export NODE_ENV=production
+
+          echo "Intentando instalación BMAD (modo estándar)..."
+          if npx --yes bmad-method install --modules bmm,bmb --yes; then
+            echo "Instalación BMAD exitosa (modo estándar)"
+          else
+            echo "Fallo modo estándar, intentando con yes..."
+
+            if yes | npx bmad-method install --modules bmm,bmb; then
+              echo "Instalación BMAD exitosa (con yes)"
+            else
+              echo "Fallo con yes, intentando con expect..."
+
+              sudo apt-get update && sudo apt-get install -y expect
+
+              expect <<EOF
+              spawn npx bmad-method install --modules bmm,bmb
+              set timeout -1
+              expect {
+                "(y/N)" { send "y\r"; exp_continue }
+                "(Y/n)" { send "y\r"; exp_continue }
+                eof
+              }
+EOF
+
+            fi
+          fi
+
+          echo "Verificando instalación..."
+          ls -la
+          ls -la node_modules || echo "No hay node_modules"
+
+          echo "Estado git..."
+          git status
+
           git add -A
+
           if git diff --cached --quiet; then
-            echo "No hay cambios que commitear tras instalar BMAD."
+            echo "No hay cambios que commitear"
           else
             git commit -m "Install BMAD modules (bmm, bmb)"
             git push origin HEAD
