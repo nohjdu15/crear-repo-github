@@ -89,7 +89,9 @@ jobs:
           echo "Directorio actual tras cd new-repo: $(pwd)"
 
           echo "Instalando módulos BMAD (bmm, bmb) en $(pwd)..."
-          npx bmad-method install --modules bmm,bmb --yes
+          # Forzamos las respuestas afirmativas como si respondieras "y" en local,
+          # además de pasar --yes por si el CLI lo soporta correctamente.
+          printf 'y\ny\ny\n' | npx bmad-method install --modules bmm,bmb --yes
 
           echo "\nContenido del repositorio tras la instalación de BMAD (incluyendo ocultos):"
           ls -laR
