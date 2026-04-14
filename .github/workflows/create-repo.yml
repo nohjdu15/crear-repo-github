@@ -83,7 +83,6 @@ jobs:
       - name: Clonar repo e instalar módulos BMAD
         run: |
           set -e
-          set -x
 
           echo "Clonando repositorio..."
           git clone "https://x-access-token:${REPO_CREATION_TOKEN}@github.com/${OWNER}/${NORMALIZED_REPO_NAME}.git" new-repo
@@ -91,50 +90,20 @@ jobs:
           echo "Directorio actual antes de entrar:"
           pwd
 
-          cd new-repo || { echo "❌ No se pudo entrar al repo"; exit 1; }
+          cd new-repo || { echo "No se pudo entrar al repo"; exit 1; }
 
-          echo "✅ Ya estoy dentro del repo clonado"
-          echo "Directorio actual:"
-          pwd
+          echo "Dentro del repo clonado en: $(pwd)"
 
-          echo "Contenido del repo:"
-          ls -la
-
-          echo "Configurando git..."
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          echo "Inicializando proyecto (por si está vacío)..."
+          echo "Inicializando proyecto Node (por si está vacío)..."
           if [ ! -f package.json ]; then
             npm init -y
           fi
 
-          echo "Forzando modo CI..."
-          export CI=true
-          export NODE_ENV=production
+          echo "Instalando BMAD en el directorio actual..."
+          npx bmad-method install --directory "$(pwd)" --modules bmm,bmb --tools claude-code --yes
 
-          echo "Instalando BMAD..."
-
-          # Intento 1: no interactivo
-          if npx --yes bmad-method install --modules bmm,bmb --no-interactive; then
-            echo "✅ BMAD instalado con --no-interactive"
-
-          # Intento 2: debug
-          elif DEBUG=* npx bmad-method install --modules bmm,bmb; then
-            echo "✅ BMAD instalado con DEBUG"
-
-          # Intento 3: fallback agresivo
-          elif yes | npx bmad-method install --modules bmm,bmb; then
-            echo "✅ BMAD instalado con yes"
-
-          else
-            echo "❌ BMAD no logró instalar módulos"
-          fi
-
-          echo "Verificando archivos generados..."
-          pwd
+          echo "Contenido del repositorio tras la instalación de BMAD:"
           ls -la
-          ls -la node_modules || echo "No hay node_modules"
 
           echo "Estado git..."
           git status
@@ -142,7 +111,7 @@ jobs:
           git add -A
 
           if git diff --cached --quiet; then
-            echo "⚠️ No hay cambios que commitear (BMAD no generó archivos)"
+            echo "No hay cambios que commitear tras instalar BMAD"
           else
             git commit -m "Install BMAD modules (bmm, bmb)"
             git push origin HEAD
