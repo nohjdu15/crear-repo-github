@@ -17,7 +17,8 @@ forma segura, usando **tokens en secretos** (sin quemar credenciales en código)
 - `requirements.txt`: dependencias necesarias para ejecutar el script.
 - `.github/workflows/ci.yml`: pipeline de CI (lint, formato, tests y análisis de seguridad).
 - `.github/workflows/create-repo.yml`: workflow manual para crear un repositorio
-  y añadir colaboradores desde la interfaz de GitHub.
+   y añadir colaboradores desde la interfaz de GitHub, además de instalar
+   automáticamente los módulos BMAD (BMM y BMB) en el nuevo repo.
 
 ## Seguridad: uso de tokens
 
@@ -72,7 +73,15 @@ permite que **antes de la ejecución** indiques:
    - usará `github.repository_owner` como *owner*,
    - tomará el PAT desde el secreto `REPO_CREATION_TOKEN`,
    - ejecutará el script `src/create_github_repo.py`,
-   - creará el repositorio y añadirá los colaboradores indicados.
+   - creará el repositorio y añadirá los colaboradores indicados,
+   - clonará el repositorio recién creado,
+   - instalará los módulos BMAD en la raíz con:
+
+     ```bash
+     npx bmad-method install --modules bmm,bmb --yes
+     ```
+
+   - hará commit y push automático de los cambios al nuevo repo.
 
 ## Uso local (sin GitHub Actions)
 
@@ -98,18 +107,43 @@ permite que **antes de la ejecución** indiques:
 El script normalizará el nombre del repo y añadirá los colaboradores que
 indiques.
 
-## Pipeline de CI (calidad y seguridad)
+## Pipelines de GitHub Actions
+
+En este proyecto hay **dos** workflows distintos:
+
+1. **CI** – [.github/workflows/ci.yml](.github/workflows/ci.yml)
+2. **Creación de repos + BMAD** – [.github/workflows/create-repo.yml](.github/workflows/create-repo.yml)
+
+### Pipeline de CI (calidad y seguridad)
 
 El workflow [.github/workflows/ci.yml](.github/workflows/ci.yml):
 
 - instala dependencias de `requirements.txt`,
 - ejecuta `flake8` para linting,
-- ejecuta `black --check` para comprobar formato,
+- formatea el código con `black .`,
 - lanza los tests con `pytest`,
 - pasa Bandit para detección de patrones de inseguridad en el código Python,
 - usa `pip-audit` para detectar vulnerabilidades conocidas en dependencias.
 
 Esto ayuda a mantener **buenas prácticas de código, estilo y seguridad**.
+
+### Pipeline de creación de repos + instalación BMAD
+
+El workflow [.github/workflows/create-repo.yml](.github/workflows/create-repo.yml):
+
+- pide por formulario el nombre del nuevo repo, descripción y colaboradores,
+- crea el repo en GitHub mediante la API (usando el token en `REPO_CREATION_TOKEN`),
+- añade los colaboradores con el permiso configurado,
+- calcula el nombre normalizado del repositorio,
+- configura Node.js y clona el repo recién creado,
+- ejecuta en la **raíz** del nuevo repo:
+
+   ```bash
+   npx bmad-method install --modules bmm,bmb --yes
+   ```
+
+- realiza `git add`, `git commit` y `git push` automático con el mismo token,
+   dejando el repositorio ya inicializado con la estructura BMAD estándar.
 
 ## Comentario sobre el código principal
 

@@ -56,3 +56,48 @@ jobs:
             $COLLABORATORS
         env:
           REPO_CREATION_TOKEN: ${{ env.REPO_CREATION_TOKEN }}
+
+      - name: Calcular nombre normalizado del repositorio
+        id: normalize-name
+        run: |
+          python - << 'PY'
+          import os
+          import re
+
+          raw = os.environ.get("REPO_NAME", "")
+          name = raw.strip().lower().replace(" ", "-")
+          name = re.sub(r"[^a-z0-9_\-]", "", name)
+          if not name:
+              raise SystemExit("Nombre de repositorio inválido después de normalizar")
+
+          github_env = os.environ["GITHUB_ENV"]
+          with open(github_env, "a", encoding="utf-8") as f:
+              f.write(f"NORMALIZED_REPO_NAME={name}\n")
+          PY
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Clonar repo recién creado e instalar módulos BMAD
+        run: |
+          echo "Clonando https://github.com/$OWNER/$NORMALIZED_REPO_NAME.git..."
+          git clone "https://x-access-token:${REPO_CREATION_TOKEN}@github.com/${OWNER}/${NORMALIZED_REPO_NAME}.git" new-repo
+
+          cd new-repo
+          echo "Instalando módulos BMAD (bmm, bmb)..."
+          npx bmad-method install --modules bmm,bmb --yes
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add .
+          if git diff --cached --quiet; then
+            echo "No hay cambios que commitear tras instalar BMAD."
+          else
+            git commit -m "Install BMAD modules (bmm, bmb)"
+            git push origin HEAD
+          fi
+        env:
+          REPO_CREATION_TOKEN: ${{ env.REPO_CREATION_TOKEN }}
