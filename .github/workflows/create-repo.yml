@@ -1,0 +1,58 @@
+name: Crear repositorio en GitHub
+
+on:
+  workflow_dispatch:
+    inputs:
+      repository_name:
+        description: "Nombre del nuevo repositorio (se normalizará a minúsculas)"
+        required: true
+        type: string
+      description:
+        description: "Descripción del repositorio"
+        required: false
+        type: string
+      collaborators:
+        description: "Usuarios colaboradores separados por espacio (opcional)"
+        required: false
+        type: string
+
+jobs:
+  create-repo:
+    name: Crear repo y añadir colaboradores
+    runs-on: ubuntu-latest
+
+    env:
+      # Owner del repositorio actual (usuario u organización)
+      OWNER: ${{ github.repository_owner }}
+      # Token seguro para crear repositorios, definido como secreto en GitHub
+      REPO_CREATION_TOKEN: ${{ secrets.REPO_CREATION_TOKEN }}
+      REPO_NAME: ${{ inputs.repository_name }}
+      REPO_DESCRIPTION: ${{ inputs.description }}
+      COLLABORATORS: ${{ inputs.collaborators }}
+
+    steps:
+      - name: Checkout del código
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Crear repositorio y añadir colaboradores
+        run: |
+          echo "Creando repositorio '$REPO_NAME' para '$OWNER'..."
+          # COLLABORATORS es una cadena con usuarios separados por espacio.
+          # Al expandirla al final del comando, cada usuario pasa como un argumento.
+          python -m src.create_github_repo \
+            "$OWNER" \
+            "$REPO_NAME" \
+            "$REPO_DESCRIPTION" \
+            $COLLABORATORS
+        env:
+          REPO_CREATION_TOKEN: ${{ env.REPO_CREATION_TOKEN }}
