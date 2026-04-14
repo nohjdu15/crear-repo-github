@@ -94,6 +94,10 @@ jobs:
 
           echo "Dentro del repo clonado en: $(pwd)"
 
+          echo "Configurando identidad de git..."
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
           echo "Inicializando proyecto Node (por si está vacío)..."
           if [ ! -f package.json ]; then
             npm init -y
