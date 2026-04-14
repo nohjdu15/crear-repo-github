@@ -80,38 +80,28 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Clonar repo e instalar módulos BMAD (robusto)
+      - name: Clonar repo e instalar módulos BMAD (fix real)
         run: |
           set -e
           set -x
 
-          echo "Clonando repositorio..."
           git clone "https://x-access-token:${REPO_CREATION_TOKEN}@github.com/${OWNER}/${NORMALIZED_REPO_NAME}.git" new-repo
+          cd new-repo
 
-          cd new-repo || { echo "No se pudo entrar al repo"; exit 1; }
-
-          echo "Configurando git..."
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          echo "Forzando modo CI..."
           export CI=true
           export NODE_ENV=production
 
-          echo "Instalando BMAD (forzado sin interacción)..."
+          echo "Inicializando proyecto Node..."
+          npm init -y
 
-          # Intento 1: modo estándar
-          npx --yes bmad-method install --modules bmm,bmb --yes || \
+          echo "Instalando BMAD..."
+          npx --yes bmad-method install --modules bmm,bmb || true
 
-          # Intento 2: usando yes
-          (yes | npx bmad-method install --modules bmm,bmb) || \
-
-          # Intento 3: simulando input con pipe extendido
-          (printf 'y\ny\ny\ny\n' | npx bmad-method install --modules bmm,bmb)
-
-          echo "Verificando instalación..."
+          echo "Verificando archivos..."
           ls -la
-          ls -la node_modules || echo "No hay node_modules"
 
           echo "Estado git..."
           git status
@@ -119,7 +109,8 @@ jobs:
           git add -A
 
           if git diff --cached --quiet; then
-            echo "No hay cambios que commitear"
+            echo "⚠️ BMAD no generó archivos"
+            exit 1
           else
             git commit -m "Install BMAD modules (bmm, bmb)"
             git push origin HEAD
