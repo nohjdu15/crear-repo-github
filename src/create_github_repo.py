@@ -175,21 +175,17 @@ def create_bmad_base_structure(token: str, owner: str, repo: str) -> None:
     - ``bmad_builder/``: utilidades para crear agentes, workflows y módulos.
     """
 
-    bmm_init = (
-        '"""Paquete base para BMad Method (BMM).
+    bmm_init = '''"""Paquete base para BMad Method (BMM).
 
 Este módulo actúa como núcleo del framework, donde podrás definir
 workflows y agentes principales.
-"""\n'
-    )
+"""\n'''
 
-    builder_init = (
-        '"""Paquete base para BMad Builder.
+    builder_init = '''"""Paquete base para BMad Builder.
 
 Aquí podrás crear agentes, workflows y módulos propios basados
 en BMM.
-"""\n'
-    )
+"""\n'''
 
     create_file_in_repo(
         token=token,
